@@ -128,8 +128,7 @@ def user_login(request):
 
     else:
         error = "yes"
-        #message = "Invalid email or password."
-        #redirect('user_login')
+        
     d = {'error': error}
     return render(request, 'user_login.html', d)
 
