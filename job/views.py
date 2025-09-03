@@ -21,7 +21,7 @@ from .forms import FeedbackForm, AdminReplyForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 
-#from django.template.loader import render_to_string for forget process
+
 
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
@@ -30,7 +30,7 @@ from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
 
-#from django.core.paginator import Paginator
+
 
 
 
