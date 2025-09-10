@@ -66,6 +66,7 @@ urlpatterns = [
 path('main_search/', main_search_jobs, name='main_search_jobs'),
 
 
+
     path('', include('job.urls')),
 
 

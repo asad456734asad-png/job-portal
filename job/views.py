@@ -1,4 +1,4 @@
-#from typing import Any
+
 
 from django.shortcuts import render,redirect
 from .models import *
@@ -75,10 +75,10 @@ def admin_login (request):
 
             else:
                 error ="yes"
-                message = "Invalid email or password."
+
         except:
             error="yes"
-            message = "Invalid email or password."
+
     d = {'error':error}
     return render (request,'admin_login.html',d)
 
@@ -191,7 +191,7 @@ def user_home (request):
         try:
             i = request.FILES['image']
             student.image = i
-            recruiter.save()
+            user.save()
             error = "no"
         except:
             pass
@@ -613,14 +613,24 @@ def search_jobs(request):
     all_titles = Job.objects.values_list('title', flat=True).distinct()
     all_locations = Job.objects.values_list('location', flat=True).distinct()
 
-    matched_title = process.extractOne(title_input, all_titles, score_cutoff=70)
-    matched_location = process.extractOne(location_input, all_locations, score_cutoff=70)
+    matched_title = process.extractOne(title_input, all_titles, score_cutoff=70) if title_input else None
 
     jobs = Job.objects.all()
+
+    # Title fuzzy match
     if matched_title:
-        jobs = jobs.filter(title=matched_title[0])
-    if matched_location:
-        jobs = jobs.filter(location=matched_location[0])
+        jobs = jobs.filter(title__icontains=matched_title[0])
+
+    # Location fuzzy + multi-word support
+    if location_input:
+        location_words = location_input.split()  # split by spaces
+        location_q = Q()
+        for word in location_words:
+            matched_location = process.extractOne(word, all_locations, score_cutoff=70)
+            if matched_location:
+                location_q |= Q(location__icontains=matched_location[0])  # OR condition
+        if location_q:
+            jobs = jobs.filter(location_q)
 
     return render(request, 'search_results.html', {'jobs': jobs})
 
@@ -781,6 +791,7 @@ def delete_job (request,pid):
 
 
 
+
 def main_search_jobs(request):
     title_input = request.GET.get('title', '').strip()
     location_input = request.GET.get('location', '').strip()
@@ -788,14 +799,24 @@ def main_search_jobs(request):
     all_titles = Job.objects.values_list('title', flat=True).distinct()
     all_locations = Job.objects.values_list('location', flat=True).distinct()
 
-    matched_title = process.extractOne(title_input, all_titles, score_cutoff=70)
-    matched_location = process.extractOne(location_input, all_locations, score_cutoff=70)
+    matched_title = process.extractOne(title_input, all_titles, score_cutoff=70) if title_input else None
 
     jobs = Job.objects.all()
+
+    # Title fuzzy match
     if matched_title:
-        jobs = jobs.filter(title=matched_title[0])
-    if matched_location:
-        jobs = jobs.filter(location=matched_location[0])
+        jobs = jobs.filter(title__icontains=matched_title[0])
+
+    # Location fuzzy + multi-word support
+    if location_input:
+        location_words = location_input.split()  # split by spaces
+        location_q = Q()
+        for word in location_words:
+            matched_location = process.extractOne(word, all_locations, score_cutoff=70)
+            if matched_location:
+                location_q |= Q(location__icontains=matched_location[0])  # OR condition
+        if location_q:
+            jobs = jobs.filter(location_q)
 
     return render(request, 'main_search_results.html', {'jobs': jobs})
 
