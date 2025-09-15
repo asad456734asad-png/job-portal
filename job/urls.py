@@ -19,4 +19,5 @@ urlpatterns = [
     path("recsubmit_feedback/", recsubmit_feedback, name="recsubmit_feedback"),
 
     path("recmy_feedbacks/", recmy_feedbacks, name="recmy_feedbacks"),
+   path('reports/', views.admin_reports, name='admin_reports'),
 ]

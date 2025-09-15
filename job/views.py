@@ -5,6 +5,7 @@ from .models import *
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from datetime import date
+from django.db.models import Count
 
 from django.conf import settings
 
@@ -15,7 +16,7 @@ from django.db.models import Q
 from fuzzywuzzy import process
 
 
-from .models import Feedback
+from .models import Feedback,Apply
 from .forms import FeedbackForm, AdminReplyForm
 
 from django.contrib.auth.decorators import login_required
@@ -34,15 +35,40 @@ from django.contrib.auth.tokens import default_token_generator
 
 
 
+def admin_reports(request):
+    # Summary counts
+    total_users = StudentUser.objects.count()
+    total_recruiters = Recruiter.objects.count()
+    total_jobs = Job.objects.count()
+    total_feedback = Feedback.objects.count()
 
+    # Grouped Data
+    jobs_by_location = Job.objects.values('location').annotate(count=Count('id'))
+    jobs_by_category = Job.objects.values('title').annotate(count=Count('id'))
+    applications_per_job = Apply.objects.values('job__title').annotate(count=Count('id'))
+    #applications_per_user = Apply.objects.values('student__user__email').annotate(count=Count('id'))
 
-def index (request):
-    #feedback_list = Feedback.objects.all().order_by("-created_at")
-    #paginator = Paginator(feedback_list, 6)  # show 6 feedbacks per page
-    #page_number = request.GET.get("page")
-    #feedbacks = paginator.get_page(page_number)
-    return render(request, "index.html")
+    applications_per_user = (
+        Apply.objects
+        .values('student__user__username', 'job__title')
+        .annotate(count=Count('id'))
+        .order_by('student__user__username')
+    )
+    context = {
+        'total_users': total_users,
+        'total_recruiters': total_recruiters,
+        'total_jobs': total_jobs,
+        'total_feedback': total_feedback,
+        'jobs_by_location': jobs_by_location,
+        'jobs_by_category': jobs_by_category,
+        'applications_per_job': applications_per_job,
+        'applications_per_user': applications_per_user,
+    }
 
+    return render(request, 'reports.html', context)
+
+def index(request):
+    return render(request, 'index.html')
 
 
 @staff_member_required
