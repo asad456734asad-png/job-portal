@@ -34,8 +34,9 @@ from django.contrib.auth.tokens import default_token_generator
 
 
 
+def admin_home(request):
+    from django.db.models import Count
 
-def admin_reports(request):
     # Summary counts
     total_users = StudentUser.objects.count()
     total_recruiters = Recruiter.objects.count()
@@ -46,7 +47,6 @@ def admin_reports(request):
     jobs_by_location = Job.objects.values('location').annotate(count=Count('id'))
     jobs_by_category = Job.objects.values('title').annotate(count=Count('id'))
     applications_per_job = Apply.objects.values('job__title').annotate(count=Count('id'))
-    #applications_per_user = Apply.objects.values('student__user__email').annotate(count=Count('id'))
 
     applications_per_user = (
         Apply.objects
@@ -54,6 +54,13 @@ def admin_reports(request):
         .annotate(count=Count('id'))
         .order_by('student__user__username')
     )
+
+    #  Debugging
+    print("Jobs by location:", list(jobs_by_location))
+    print("Jobs by category:", list(jobs_by_category))
+    print("Applications per job:", list(applications_per_job))
+    print("Applications per user:", list(applications_per_user))
+
     context = {
         'total_users': total_users,
         'total_recruiters': total_recruiters,
@@ -64,8 +71,7 @@ def admin_reports(request):
         'applications_per_job': applications_per_job,
         'applications_per_user': applications_per_user,
     }
-
-    return render(request, 'reports.html', context)
+    return render(request, 'admin_home.html', context)
 
 def index(request):
     return render(request, 'index.html')
